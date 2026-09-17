@@ -1,0 +1,44 @@
+name: Publicar Radar B3 Clean
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '20 10 * * *'
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: radar-b3-clean
+  cancel-in-progress: true
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python scripts/build_clean_data.py
+      - run: python - <<'PY'
+          import json
+          c=json.load(open('data/catalog.json'))
+          assert c['count'] == len(c['items']) and c['count'] >= 250
+          assert len({x['ticker'] for x in c['items']}) == c['count']
+          print('CLEAN CATALOG PASS',c['count'])
+        PY
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with: {path: .}
+      - id: deployment
+        uses: actions/deploy-pages@v4
+      - name: Commitar base limpa
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data VERSION.json
+          git diff --cached --quiet || git commit -m 'data: reconstruir base limpa'
+          git pull --rebase
+          git push
