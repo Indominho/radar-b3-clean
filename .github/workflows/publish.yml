@@ -2,7 +2,7 @@ name: Publicar Radar B3 Clean
 on:
   workflow_dispatch:
   schedule:
-    - cron: '20 10 * * *'
+    - cron: "20 10 * * *"
 permissions:
   contents: read
   pages: write
@@ -16,19 +16,18 @@ jobs:
     timeout-minutes: 15
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: "${{ steps.deployment.outputs.page_url }}"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+        with: {python-version: "3.12"}
       - name: Gerar base limpa
         run: python scripts/build_clean_data.py
-      - name: Validar catálogo
-        run: python -c "import json; c=json.load(open('data/catalog.json')); assert c['count']==len(c['items']) and c['count']>=250; assert len({x['ticker'] for x in c['items']})==c['count']; print('CLEAN CATALOG PASS',c['count'])"
+      - name: Validar catalogo
+        run: >-
+          python -c "import json; c=json.load(open('data/catalog.json')); assert c['count']==len(c['items']) and c['count']>=250; assert len({x['ticker'] for x in c['items']})==c['count']; print('CLEAN CATALOG PASS',c['count'])"
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
-        with:
-          path: .
+        with: {path: "."}
       - id: deployment
         uses: actions/deploy-pages@v4
