@@ -20,21 +20,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: {python-version: '3.12'}
-      - run: python scripts/build_clean_data.py
-      - run: python - <<'PY'
-          import json
-          c=json.load(open('data/catalog.json'))
-          assert c['count'] == len(c['items']) and c['count'] >= 250
-          assert len({x['ticker'] for x in c['items']}) == c['count']
-          print('CLEAN CATALOG PASS',c['count'])
-        PY
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with: {path: .}
-      - id: deployment
-        uses: actions/deploy-pages@v4
-      - name: Commitar base limpa
+        with:
+          python-version: '3.12'
+      - name: Gerar base limpa
+        run: python scripts/build_clean_data.py
+      - name: Validar catálogo
+        run: python -c "import json; c=json.load(open('data/catalog.json')); assert c['count']==len(c['items']) and c['count']>=250; assert len({x['ticker'] for x in c['items']})==c['count']; print('CLEAN CATALOG PASS',c['count'])"
+      - name: Commitar dados gerados
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
@@ -42,3 +34,9 @@ jobs:
           git diff --cached --quiet || git commit -m 'data: reconstruir base limpa'
           git pull --rebase
           git push
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - id: deployment
+        uses: actions/deploy-pages@v4
