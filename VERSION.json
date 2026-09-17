@@ -1,0 +1,7 @@
+{
+  "version": "v2.0.0",
+  "name": "Radar B3 IA Clean",
+  "release": "2026-09-17",
+  "policy": "base limpa, um único workflow de publicação, sem dados antigos herdados",
+  "status": "base inicial"
+}
